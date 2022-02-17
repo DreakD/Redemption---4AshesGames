@@ -27,6 +27,11 @@ namespace StarterAssets
         {
             starterAssetsInputs.SprintInput(virtualSprintState);
         }
+
+        public void VirtualDashInput(bool virtualDashState)
+        {
+            starterAssetsInputs.DashInput(virtualDashState);
+        }
         
     }
 
