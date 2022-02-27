@@ -16,6 +16,9 @@ public class UIManager : MonoBehaviour
     public Scrollbar sliderAge;
     public Text ageValueText;
 
+    [Header("Description")]
+    public Text descriptionStatsText;
+
 
     private void Start()
     {
@@ -37,5 +40,23 @@ public class UIManager : MonoBehaviour
     public void ageValueChange()
     {
         ageValueText.text = Math.Floor((sliderAge.value * 150)).ToString();
+    }
+
+    public void descriptionStat(String type)
+    {
+        switch (type)
+        {
+            case "haut":
+                descriptionStatsText.text = "Le haut du corps, relatif au épaule, au bras et au torse," +
+                    " symbolisant les valeur de force, de point de vie et de Défense.";
+                break;
+            case "bas":
+                descriptionStatsText.text = "Le bas du corps, relatif au jambes, symbolisant" +
+                    " la valeur de rapidité de déplacements et d'attaque, ainsi que l'endurance.";
+                break;
+            case "age":
+                descriptionStatsText.text = "L'Age, relatif au Mana et a l'attaque/défense magique.";
+                break;
+        }
     }
 }
