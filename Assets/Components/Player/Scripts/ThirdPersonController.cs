@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 #endif
 
 /* Note: animations are called via the controller for both the character and capsule using animator null checks
@@ -23,6 +24,10 @@ namespace StarterAssets
         public float DashDuration = 10.0f;
         [Tooltip("Dash distance of the character in m/s")]
         public float DashDistance = 10.0f;
+
+        public int MaximumNumberOfDashes = 3;
+        public float SingleDashCooldown = 1.0f;
+
         [Tooltip("How fast the character turns to face movement direction")]
         [Range(0.0f, 0.3f)]
         public float RotationSmoothTime = 0.12f;
@@ -63,6 +68,8 @@ namespace StarterAssets
         [Tooltip("For locking the camera position on all axis")]
         public bool LockCameraPosition = false;
 
+        public Slider DashUI;
+
         // cinemachine
         private float _cinemachineTargetYaw;
         private float _cinemachineTargetPitch;
@@ -76,11 +83,15 @@ namespace StarterAssets
         private float _verticalVelocity;
         private float _terminalVelocity = 53.0f;
         private bool _dashing = false;
+        private bool _recoveringDash = false;
+        private bool _recoveringAllDashes = false;
+        private int _dashesAvailable;
 
         // timeout deltatime
         private float _jumpTimeoutDelta;
         private float _fallTimeoutDelta;
         private float _dashTimeout;
+        private float _dashRecoveringTimeout;
 
         // animation IDs
         private int _animIDSpeed;
@@ -119,6 +130,10 @@ namespace StarterAssets
             _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
             _dashTimeout = DashDuration;
+            _dashesAvailable = MaximumNumberOfDashes;
+
+            DashUI.maxValue = MaximumNumberOfDashes;
+            DashUI.value = MaximumNumberOfDashes;
         }
 
         private void Update()
@@ -128,7 +143,8 @@ namespace StarterAssets
             JumpAndGravity();
             GroundedCheck();
             Move();
-            DashAndRoll();
+            Dash();
+            DashRecovering();
         }
 
         private void LateUpdate()
@@ -328,14 +344,17 @@ namespace StarterAssets
             Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
         }
 
-        private void DashAndRoll()
+        private void Dash()
         {
             if (!_dashing)
             {
                 _dashTimeout = DashDuration;
 
-                if (_input.dash && Grounded)
+                if (_input.dash && Grounded && (_dashesAvailable > 0))
                 {
+                    --_dashesAvailable;
+                    DashUI.value = _dashesAvailable;
+                    Debug.Log(_dashesAvailable);
                     _dashing = true;
                     // update animator if using character
                     if (_hasAnimator)
@@ -384,6 +403,56 @@ namespace StarterAssets
             }
 
             _input.dash = false;
+        }
+
+        private void DashRecovering()
+        {
+            if (_dashesAvailable < 1 && !_recoveringAllDashes)
+            {
+                _dashRecoveringTimeout = SingleDashCooldown * MaximumNumberOfDashes;
+                _recoveringDash = false;
+                _recoveringAllDashes = true;
+            }
+            else if (_dashesAvailable < MaximumNumberOfDashes && !_recoveringDash && !_recoveringAllDashes)
+            {
+                _dashRecoveringTimeout = SingleDashCooldown;
+                _recoveringDash = true;
+            }
+
+            if (_recoveringDash)
+            {
+                if (_dashRecoveringTimeout < 0.0f)
+                {
+                    _recoveringDash = false;
+                    ++_dashesAvailable;
+                    Debug.Log(_dashesAvailable);
+                }
+                else
+                {
+                    _dashRecoveringTimeout -= Time.deltaTime;
+                    DashUI.value = _dashesAvailable + ((SingleDashCooldown - _dashRecoveringTimeout) / SingleDashCooldown);
+                }
+            }
+
+            if (_recoveringAllDashes)
+            {
+                if (_dashRecoveringTimeout < 0.0f)
+                {
+                    _recoveringAllDashes = false;
+                    _dashesAvailable = MaximumNumberOfDashes;
+                    ColorBlock colors = DashUI.colors;
+                    colors.disabledColor = Color.white;
+                    DashUI.colors = colors;
+                }
+                else
+                {
+                    ColorBlock colors = DashUI.colors;
+                    colors.disabledColor = Color.red;
+                    DashUI.colors = colors;
+                    _dashRecoveringTimeout -= Time.deltaTime;
+                    DashUI.value = (((SingleDashCooldown * MaximumNumberOfDashes)- _dashRecoveringTimeout) / (SingleDashCooldown * MaximumNumberOfDashes)) * MaximumNumberOfDashes;
+                }
+            }
         }
     }
 }
