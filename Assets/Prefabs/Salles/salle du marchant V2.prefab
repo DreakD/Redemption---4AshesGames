@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1957775983276080515}
   m_Layer: 0
-  m_Name: salle du marchant
+  m_Name: salle du marchant V2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1534,7 +1534,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6020047756313527777, guid: 6c4ebcca688c3a94db15c7add1a5e207, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.43098
+      value: -0.45
       objectReference: {fileID: 0}
     - target: {fileID: 6020047756313527777, guid: 6c4ebcca688c3a94db15c7add1a5e207, type: 3}
       propertyPath: m_LocalPosition.y
